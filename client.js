@@ -2,10 +2,11 @@
  * Client half of the pet-cat decoration.
  *
  * A frameless, transparent cat window on the click-through `shell.overlay` slot.
- * There are no visible controls: press and hold the cat briefly, then move, to
- * drag the window; keep holding without moving to open the cat picker. A quick
- * stroke still pets the cat (the page handles it). The bundled page reports
- * those gestures to this half over postMessage.
+ * The iframe is cropped to the cat's idle bounding box (no empty window around
+ * it). There are no visible controls: press and hold the cat briefly, then move,
+ * to drag the window; keep holding without moving to open the cat picker. A
+ * quick stroke still pets the cat. The bundled page reports those gestures over
+ * postMessage.
  */
 window.__ModuleLoader__.load({
   id: 'dsh-pet-cat',
@@ -17,7 +18,9 @@ window.__ModuleLoader__.load({
     const STORAGE_POS = 'dsh-pet-cat:pos'
     const STORAGE_OPEN = 'dsh-pet-cat:open'
     const STORAGE_CAT = 'dsh-pet-cat:catsize'
-    const SIZE = { width: 360, height: 420 }
+    const PAGE = { width: 360, height: 420 }
+    // Crop of PAGE that contains the cat (measured from the rendered page).
+    const CROP = { x: 2, y: 90, width: 322, height: 180 }
     const LOCAL = '/api/pet-cat/site'
 
     const CAT_LABELS = {
@@ -39,14 +42,13 @@ window.__ModuleLoader__.load({
 
     const STYLE = `
       .dsh-pet-cat{position:fixed;z-index:60;pointer-events:auto;background:transparent;border:0;box-shadow:none}
-      .dsh-pet-cat-frame{position:absolute;inset:0;width:100%;height:100%;border:0;display:block;background:transparent}
+      .dsh-pet-cat-clip{position:absolute;inset:0;overflow:hidden;border-radius:12px;pointer-events:auto}
+      .dsh-pet-cat-frame{position:absolute;border:0;display:block;background:transparent}
       .dsh-pet-cat-menu{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:240px;max-height:300px;overflow:auto;border-radius:14px;background:rgba(251,245,236,.98);backdrop-filter:blur(10px);box-shadow:0 16px 40px rgba(0,0,0,.3);border:1px solid rgba(69,51,39,.14);padding:8px;display:grid;grid-template-columns:1fr 1fr;gap:4px;pointer-events:auto}
       .dsh-pet-cat-item{display:flex;align-items:center;gap:6px;padding:5px 6px;border-radius:8px;border:1px solid transparent;background:transparent;cursor:pointer;font-size:11px;color:#413024;text-align:left}
       .dsh-pet-cat-item:hover{background:rgba(69,51,39,.08)}
       .dsh-pet-cat-item[data-active=true]{border-color:#925b36;background:rgba(146,91,54,.1)}
       .dsh-pet-cat-swatch{width:18px;height:18px;border-radius:50%;flex:none;background-color:#e3d9ca;background-repeat:no-repeat;border:1px solid rgba(69,51,39,.15)}
-      .dsh-pet-cat-range{grid-column:1 / -1;display:flex;align-items:center;gap:8px;padding:6px;font-size:11px;color:#413024}
-      .dsh-pet-cat-range input{flex:1;accent-color:#925b36}
       .dsh-pet-cat-foot{grid-column:1 / -1;display:flex;gap:6px;padding-top:4px;border-top:1px solid rgba(69,51,39,.1);margin-top:4px}
       .dsh-pet-cat-foot button{flex:1;border:0;border-radius:8px;padding:5px;background:rgba(69,51,39,.08);color:#413024;font-size:11px;cursor:pointer}
       .dsh-pet-cat-foot button:hover{background:rgba(69,51,39,.16)}
@@ -84,15 +86,15 @@ window.__ModuleLoader__.load({
 
     function defaultPos() {
       return {
-        x: Math.max(8, window.innerWidth - SIZE.width - 18),
-        y: Math.max(8, window.innerHeight - SIZE.height - 18),
+        x: Math.max(8, window.innerWidth - CROP.width - 18),
+        y: Math.max(8, window.innerHeight - CROP.height - 18),
       }
     }
 
     function clampPos(pos) {
       return {
-        x: Math.min(Math.max(4, pos.x), Math.max(4, window.innerWidth - SIZE.width - 4)),
-        y: Math.min(Math.max(4, pos.y), Math.max(4, window.innerHeight - SIZE.height - 4)),
+        x: Math.min(Math.max(4, pos.x), Math.max(4, window.innerWidth - CROP.width - 4)),
+        y: Math.min(Math.max(4, pos.y), Math.max(4, window.innerHeight - CROP.height - 4)),
       }
     }
 
@@ -105,10 +107,8 @@ window.__ModuleLoader__.load({
       const [menu, setMenu] = useState(false)
       const [cats, setCats] = useState([])
       const [current, setCurrent] = useState('')
-      const [catSize, setCatSize] = useState(() => readNumber(STORAGE_CAT, 4))
+      const [catSize] = useState(() => readNumber(STORAGE_CAT, 4))
       const frameRef = useRef(null)
-      const posRef = useRef(pos)
-      posRef.current = pos
 
       useEffect(() => {
         const onResize = () => setPos((currentPos) => clampPos(currentPos))
@@ -167,9 +167,7 @@ window.__ModuleLoader__.load({
           if (!frame || event.source !== frame.contentWindow) return
           const data = event.data || {}
           if (data.type === 'pet-cat-drag' && Number.isFinite(data.dx) && Number.isFinite(data.dy)) {
-            setPos((currentPos) =>
-              clampPos({ x: currentPos.x + data.dx, y: currentPos.y + data.dy }),
-            )
+            setPos((currentPos) => clampPos({ x: currentPos.x + data.dx, y: currentPos.y + data.dy }))
           } else if (data.type === 'pet-cat-menu') {
             readCats()
             setMenu((value) => !value)
@@ -203,20 +201,25 @@ window.__ModuleLoader__.load({
         'div',
         {
           className: 'dsh-pet-cat',
-          style: { left: pos.x, top: pos.y, width: SIZE.width, height: SIZE.height },
+          style: { left: pos.x, top: pos.y, width: CROP.width, height: CROP.height },
           'data-dsh-pet-cat': 'panel',
         },
-        h('iframe', {
-          ref: frameRef,
-          className: 'dsh-pet-cat-frame',
-          src: LOCAL,
-          title: 'pet the cat',
-          allow: 'autoplay',
-          onLoad: () => {
-            readCats()
-            applyCatSize(catSize)
-          },
-        }),
+        h(
+          'div',
+          { className: 'dsh-pet-cat-clip' },
+          h('iframe', {
+            ref: frameRef,
+            className: 'dsh-pet-cat-frame',
+            src: LOCAL,
+            title: 'pet the cat',
+            allow: 'autoplay',
+            style: { width: PAGE.width, height: PAGE.height, left: -CROP.x, top: -CROP.y },
+            onLoad: () => {
+              readCats()
+              applyCatSize(catSize)
+            },
+          }),
+        ),
         menu && cats.length
           ? h(
               'div',
@@ -242,28 +245,6 @@ window.__ModuleLoader__.load({
                   }),
                   h('span', null, cat.label),
                 ),
-              ),
-              h(
-                'div',
-                { className: 'dsh-pet-cat-range' },
-                h('span', null, '大小'),
-                h('input', {
-                  type: 'range',
-                  min: 0,
-                  max: 10,
-                  step: 1,
-                  value: catSize,
-                  onChange: (event) => {
-                    const value = Number(event.target.value)
-                    setCatSize(value)
-                    applyCatSize(value)
-                    try {
-                      localStorage.setItem(STORAGE_CAT, String(value))
-                    } catch {
-                      /* ignore */
-                    }
-                  },
-                }),
               ),
               h(
                 'div',

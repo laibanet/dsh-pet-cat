@@ -2945,7 +2945,7 @@ if(support>0)input=tailContact(tuft,pressure*support);
 }
 }
 }else if(handChange.view)handChange.reset();
-cat.draw(view,input,dt);
+{const lg=layer.getContext('2d');lg.setTransform(1,0,0,1,0,0);lg.clearRect(0,0,layer.width,layer.height);}cat.draw(view,input,dt);
 if(visible && tail.stroke)blend=poseHands(dt);
 if(tail.amount<.002&&!tail.stroke){tailAnchor=false;returningToBody=false;}
 ctx.setTransform(dpr,0,0,dpr,0,0);
