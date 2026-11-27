@@ -15,6 +15,6 @@ if not exist "%BROWSER%" (
   exit /b 1
 )
 
-start "" "%BROWSER%" --app="%URL%" --window-size=380,500 --window-position=980,560 --user-data-dir="%LOCALAPPDATA%\dsh-pet-cat-window"
+start "" "%BROWSER%" --app="%URL%" --window-size=540,480 --window-position=900,500 --user-data-dir="%LOCALAPPDATA%\dsh-pet-cat-window"
 timeout /t 2 /nobreak >nul
 powershell -NoProfile -ExecutionPolicy Bypass -File "%DIR%pin.ps1"
