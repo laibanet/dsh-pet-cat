@@ -53,6 +53,77 @@ window.addEventListener('unhandledrejection', (event) => {
   box.textContent = 'REJECTION: ' + (event.reason && event.reason.stack ? event.reason.stack : event.reason)
   document.body.append(box)
 })
+if (window.parent !== window) {
+  // Tell the DSH half about drags and long-presses. Quick strokes stay with the
+  // page (petting); a short hold then move drags; holding still opens the menu.
+  const post = (message) => {
+    try {
+      window.parent.postMessage(message, '*')
+    } catch {
+      /* ignore */
+    }
+  }
+  let start = null
+  let holdTimer = 0
+  let menuTimer = 0
+  let dragging = false
+  let last = null
+  const cleanup = () => {
+    clearTimeout(holdTimer)
+    clearTimeout(menuTimer)
+    window.removeEventListener('pointermove', onMove, true)
+    window.removeEventListener('pointerup', onUp, true)
+    window.removeEventListener('pointercancel', onUp, true)
+  }
+  function onMove(event) {
+    if (!start) return
+    const dx = event.clientX - start.x
+    const dy = event.clientY - start.y
+    if (!dragging && Math.hypot(dx, dy) > 6) {
+      if (performance.now() - start.t < 300) {
+        start = null
+        cleanup()
+        return
+      }
+      dragging = true
+      last = { x: event.clientX, y: event.clientY }
+      clearTimeout(menuTimer)
+    }
+    if (dragging) {
+      event.stopImmediatePropagation()
+      event.preventDefault()
+      post({ type: 'pet-cat-drag', dx: event.clientX - last.x, dy: event.clientY - last.y })
+      last = { x: event.clientX, y: event.clientY }
+    }
+  }
+  function onUp() {
+    start = null
+    dragging = false
+    cleanup()
+  }
+  window.addEventListener(
+    'pointerdown',
+    (event) => {
+      if (event.button !== 0) return
+      start = { x: event.clientX, y: event.clientY, t: performance.now() }
+      dragging = false
+      holdTimer = setTimeout(() => {
+        if (!start || dragging) return
+        menuTimer = setTimeout(() => {
+          if (start && !dragging) {
+            post({ type: 'pet-cat-menu' })
+            start = null
+            cleanup()
+          }
+        }, 520)
+      }, 320)
+      window.addEventListener('pointermove', onMove, true)
+      window.addEventListener('pointerup', onUp, true)
+      window.addEventListener('pointercancel', onUp, true)
+    },
+    true,
+  )
+}
 </script>`
 
 const data =

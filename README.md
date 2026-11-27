@@ -1,24 +1,22 @@
 # dsh-pet-cat
 
-The **pet-the-cat** cat as a transparent, resizable window inside DeepSeek Harness.
+The **pet-the-cat** cat as a transparent, frameless window inside DeepSeek Harness.
 
 The cat page is bundled (one self-contained HTML file) and served locally by the
-Host half, so it works offline. Only the cat is drawn: the room background and
-the contact shadow are removed and the canvas is transparent, so the cat floats
-over DSH. Hover the window for the drag grip, the cat picker and the size slider;
-drag the bottom-right corner to resize. The cat artwork belongs to **zubu**
-(<https://pet-the-cat.pages.dev>) and is bundled with the author's permission.
+Host half, so it works offline. Only the cat is drawn: no room, no shadow, no
+window chrome — the canvas is transparent, so the cat floats over DSH.
 
 ## 中文
 
-右下角一只猫，没有房间、没有阴影、没有标题栏：
+右下角只有一只猫，没有标题栏、没有按钮、没有可见边框。
 
-- 画布透明，只有猫本体（和摸猫的手）浮在 DSH 上；
-- 鼠标移上去：左上 **⠿** 拖动，右上 **⚙** 打开猫猫选择器（14 只）+ **大小** 滑杆；
-- 右下角拖动可调整窗口大小，位置和尺寸都会记住；
-- 窗口缩放时猫会跟着重新布局、保持居中；
-- 窗口默认 360×420 竖版；大小滑杆同步到原页面的“猫の大きさ”；
-- 页面与照片全部内置、离线可用，不访问原站。
+- **快速滑过猫身**：正常摸猫（原页面的手感、呼噜声、换猫都保留）；
+- **按住猫约 0.3 秒再拖动**：移动窗口（位置会记住）；
+- **按住猫不动约 0.85 秒**：弹出设置，选 14 只猫、调整大小、重载或收起；
+- 设置菜单位于猫身上方，点选后自动关闭，Esc 也可以关；
+- 收起后右下角保留 🐱 按钮，点一下重新出现。
+
+猫的照片与页面版权归作者 zubu（<https://pet-the-cat.pages.dev>），经作者同意内置。
 
 ### 安装
 
@@ -30,16 +28,17 @@ dsh plugin --profile web add git+https://github.com/laibanet/dsh-pet-cat.git
 
 ## English
 
-A cat in the corner with no room, no shadow and no chrome:
+Only a cat sits in the corner — no title bar, no buttons, no visible frame.
 
-- The canvas is transparent, so only the cat (and the petting hand) floats over
-  DSH;
-- On hover: **⠿** drags and **⚙** opens the 14-cat picker plus a **size** slider;
-- Drag the bottom-right corner to resize; position and size are remembered;
-- Resizing re-runs the page layout so the cat stays centered and scaled;
-- Defaults to 360×420 portrait; the size slider drives the page's own "cat size"
-  control;
-- Everything is bundled and offline; the public site is never contacted.
+- **Quickly stroke the cat**: normal petting (the page's feel, purring and cat
+  switching are unchanged);
+- **Press and hold the cat for ~0.3 s, then drag**: move the window (position is
+  remembered);
+- **Hold the cat still for ~0.85 s**: open settings — pick one of 14 cats, adjust
+  size, reload or hide;
+- The settings sheet appears over the cat, closes after a pick, and Escape closes
+  it too;
+- After hiding, a 🐱 button stays in the corner to bring it back.
 
 The cat photos and page are by **zubu**
 (<https://pet-the-cat.pages.dev>) and are bundled with the author's permission.

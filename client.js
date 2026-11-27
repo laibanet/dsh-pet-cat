@@ -1,11 +1,11 @@
 /**
  * Client half of the pet-cat decoration.
  *
- * A frameless, resizable window on the click-through `shell.overlay` slot that
- * shows only the cat: the room and contact shadow are removed inside the
- * bundled page, so the transparent canvas floats over DSH. A hover toolbar
- * drags the window, opens the cat picker and a cat-size slider; the bottom-right
- * corner resizes the window.
+ * A frameless, transparent cat window on the click-through `shell.overlay` slot.
+ * There are no visible controls: press and hold the cat briefly, then move, to
+ * drag the window; keep holding without moving to open the cat picker. A quick
+ * stroke still pets the cat (the page handles it). The bundled page reports
+ * those gestures to this half over postMessage.
  */
 window.__ModuleLoader__.load({
   id: 'dsh-pet-cat',
@@ -15,12 +15,9 @@ window.__ModuleLoader__.load({
     const { useCallback, useEffect, useRef, useState } = React
 
     const STORAGE_POS = 'dsh-pet-cat:pos'
-    const STORAGE_SIZE = 'dsh-pet-cat:size'
     const STORAGE_OPEN = 'dsh-pet-cat:open'
     const STORAGE_CAT = 'dsh-pet-cat:catsize'
-    const MIN = { width: 240, height: 200 }
-    const MAX = { width: 720, height: 600 }
-    const DEFAULT = { width: 360, height: 420 }
+    const SIZE = { width: 360, height: 420 }
     const LOCAL = '/api/pet-cat/site'
 
     const CAT_LABELS = {
@@ -40,25 +37,10 @@ window.__ModuleLoader__.load({
       sphynx: '无毛猫',
     }
 
-    const GEAR = h(
-      'svg',
-      { viewBox: '0 0 24 24', width: 13, height: 13, 'aria-hidden': true, fill: 'none', stroke: 'currentColor', strokeWidth: 1.8 },
-      h('circle', { cx: 12, cy: 12, r: 3.4 }),
-      h('path', { d: 'M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9 17 7M7 17l-2.1 2.1' }),
-    )
-
     const STYLE = `
-      .dsh-pet-cat{position:fixed;z-index:60;pointer-events:auto;border-radius:16px;overflow:hidden;background:transparent;border:0;box-shadow:none}
+      .dsh-pet-cat{position:fixed;z-index:60;pointer-events:auto;background:transparent;border:0;box-shadow:none}
       .dsh-pet-cat-frame{position:absolute;inset:0;width:100%;height:100%;border:0;display:block;background:transparent}
-      .dsh-pet-cat-tools{position:absolute;top:6px;right:6px;display:flex;gap:4px;pointer-events:none;opacity:0;transition:opacity .15s}
-      .dsh-pet-cat-grip{position:absolute;top:6px;left:6px;pointer-events:auto;cursor:grab;width:24px;height:16px;border-radius:9px;background:rgba(69,51,39,.18);display:flex;align-items:center;justify-content:center;color:rgba(69,51,39,.85);font-size:10px;line-height:1;user-select:none;opacity:0;transition:opacity .15s}
-      .dsh-pet-cat:hover .dsh-pet-cat-tools,.dsh-pet-cat:hover .dsh-pet-cat-grip,.dsh-pet-cat:focus-within .dsh-pet-cat-tools,.dsh-pet-cat:focus-within .dsh-pet-cat-grip{opacity:1}
-      .dsh-pet-cat-grip:active{cursor:grabbing}
-      .dsh-pet-cat-btn{pointer-events:auto;border:0;width:26px;height:26px;border-radius:50%;background:rgba(69,51,39,.16);color:#413024;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;line-height:1}
-      .dsh-pet-cat-btn:hover{background:rgba(69,51,39,.3)}
-      .dsh-pet-cat-resize{position:absolute;right:0;bottom:0;width:18px;height:18px;cursor:nwse-resize;opacity:0;transition:opacity .15s;background:linear-gradient(135deg,transparent 50%,rgba(69,51,39,.35) 50%);border-bottom-right-radius:16px}
-      .dsh-pet-cat:hover .dsh-pet-cat-resize{opacity:1}
-      .dsh-pet-cat-menu{position:absolute;top:38px;right:6px;width:230px;max-height:280px;overflow:auto;border-radius:12px;background:rgba(251,245,236,.97);backdrop-filter:blur(8px);box-shadow:0 12px 32px rgba(0,0,0,.28);border:1px solid rgba(69,51,39,.12);padding:6px;display:grid;grid-template-columns:1fr 1fr;gap:4px;pointer-events:auto}
+      .dsh-pet-cat-menu{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:240px;max-height:300px;overflow:auto;border-radius:14px;background:rgba(251,245,236,.98);backdrop-filter:blur(10px);box-shadow:0 16px 40px rgba(0,0,0,.3);border:1px solid rgba(69,51,39,.14);padding:8px;display:grid;grid-template-columns:1fr 1fr;gap:4px;pointer-events:auto}
       .dsh-pet-cat-item{display:flex;align-items:center;gap:6px;padding:5px 6px;border-radius:8px;border:1px solid transparent;background:transparent;cursor:pointer;font-size:11px;color:#413024;text-align:left}
       .dsh-pet-cat-item:hover{background:rgba(69,51,39,.08)}
       .dsh-pet-cat-item[data-active=true]{border-color:#925b36;background:rgba(146,91,54,.1)}
@@ -100,41 +82,25 @@ window.__ModuleLoader__.load({
       }
     }
 
-    function clampSize(size) {
+    function defaultPos() {
       return {
-        width: Math.min(MAX.width, Math.max(MIN.width, size.width)),
-        height: Math.min(MAX.height, Math.max(MIN.height, size.height)),
+        x: Math.max(8, window.innerWidth - SIZE.width - 18),
+        y: Math.max(8, window.innerHeight - SIZE.height - 18),
       }
     }
 
-    function defaultPos(size) {
+    function clampPos(pos) {
       return {
-        x: Math.max(8, window.innerWidth - size.width - 18),
-        y: Math.max(8, window.innerHeight - size.height - 18),
-      }
-    }
-
-    function clampPos(pos, size) {
-      return {
-        x: Math.min(Math.max(4, pos.x), Math.max(4, window.innerWidth - size.width - 4)),
-        y: Math.min(Math.max(4, pos.y), Math.max(4, window.innerHeight - size.height - 4)),
+        x: Math.min(Math.max(4, pos.x), Math.max(4, window.innerWidth - SIZE.width - 4)),
+        y: Math.min(Math.max(4, pos.y), Math.max(4, window.innerHeight - SIZE.height - 4)),
       }
     }
 
     function PetCat() {
       const [open, setOpen] = useState(() => readBool(STORAGE_OPEN, true))
-      const [size, setSize] = useState(() => {
-        const stored = readJson(STORAGE_SIZE, null)
-        return stored && Number.isFinite(stored.width) && Number.isFinite(stored.height) ? clampSize(stored) : DEFAULT
-      })
       const [pos, setPos] = useState(() => {
         const stored = readJson(STORAGE_POS, null)
-        const initial = readJson(STORAGE_SIZE, null)
-        const initialSize = initial && Number.isFinite(initial.width) ? clampSize(initial) : DEFAULT
-        return clampPos(
-          stored && Number.isFinite(stored.x) && Number.isFinite(stored.y) ? stored : defaultPos(initialSize),
-          initialSize,
-        )
+        return clampPos(stored && Number.isFinite(stored.x) && Number.isFinite(stored.y) ? stored : defaultPos())
       })
       const [menu, setMenu] = useState(false)
       const [cats, setCats] = useState([])
@@ -142,20 +108,10 @@ window.__ModuleLoader__.load({
       const [catSize, setCatSize] = useState(() => readNumber(STORAGE_CAT, 4))
       const frameRef = useRef(null)
       const posRef = useRef(pos)
-      const sizeRef = useRef(size)
-      const dragRef = useRef(null)
-      const resizeRef = useRef(null)
       posRef.current = pos
-      sizeRef.current = size
 
       useEffect(() => {
-        const onResize = () => {
-          setSize((currentSize) => {
-            const next = clampSize(currentSize)
-            setPos((currentPos) => clampPos(currentPos, next))
-            return next
-          })
-        }
+        const onResize = () => setPos((currentPos) => clampPos(currentPos))
         window.addEventListener('resize', onResize)
         return () => window.removeEventListener('resize', onResize)
       }, [])
@@ -167,66 +123,6 @@ window.__ModuleLoader__.load({
           /* ignore */
         }
       }, [open])
-
-      useEffect(() => {
-        const onMove = (event) => {
-          const drag = dragRef.current
-          if (drag && drag.active) {
-            drag.latest = clampPos({ x: event.clientX - drag.offsetX, y: event.clientY - drag.offsetY }, sizeRef.current)
-            setPos(drag.latest)
-            return
-          }
-          const grip = resizeRef.current
-          if (grip && grip.active) {
-            const next = clampSize({
-              width: grip.width + (event.clientX - grip.x),
-              height: grip.height + (event.clientY - grip.y),
-            })
-            setSize(next)
-          }
-        }
-        const onUp = () => {
-          const drag = dragRef.current
-          if (drag && drag.active) {
-            drag.active = false
-            try {
-              localStorage.setItem(STORAGE_POS, JSON.stringify(drag.latest || posRef.current))
-            } catch {
-              /* ignore */
-            }
-          }
-          const grip = resizeRef.current
-          if (grip && grip.active) {
-            grip.active = false
-            try {
-              localStorage.setItem(STORAGE_SIZE, JSON.stringify(sizeRef.current))
-            } catch {
-              /* ignore */
-            }
-          }
-        }
-        window.addEventListener('pointermove', onMove)
-        window.addEventListener('pointerup', onUp)
-        window.addEventListener('pointercancel', onUp)
-        return () => {
-          window.removeEventListener('pointermove', onMove)
-          window.removeEventListener('pointerup', onUp)
-          window.removeEventListener('pointercancel', onUp)
-        }
-      }, [])
-
-      useEffect(() => {
-        const frame = frameRef.current
-        if (!frame || !frame.contentWindow) return undefined
-        const timer = setTimeout(() => {
-          try {
-            frame.contentWindow.dispatchEvent(new Event('resize'))
-          } catch {
-            /* ignore */
-          }
-        }, 60)
-        return () => clearTimeout(timer)
-      }, [size.width, size.height])
 
       const readCats = useCallback(() => {
         const frame = frameRef.current
@@ -265,6 +161,33 @@ window.__ModuleLoader__.load({
         input.dispatchEvent(new Event('change', { bubbles: true }))
       }, [])
 
+      useEffect(() => {
+        const onMessage = (event) => {
+          const frame = frameRef.current
+          if (!frame || event.source !== frame.contentWindow) return
+          const data = event.data || {}
+          if (data.type === 'pet-cat-drag' && Number.isFinite(data.dx) && Number.isFinite(data.dy)) {
+            setPos((currentPos) =>
+              clampPos({ x: currentPos.x + data.dx, y: currentPos.y + data.dy }),
+            )
+          } else if (data.type === 'pet-cat-menu') {
+            readCats()
+            setMenu((value) => !value)
+          }
+        }
+        window.addEventListener('message', onMessage)
+        return () => window.removeEventListener('message', onMessage)
+      }, [readCats])
+
+      useEffect(() => {
+        if (!menu) return undefined
+        const onKey = (event) => {
+          if (event.key === 'Escape') setMenu(false)
+        }
+        window.addEventListener('keydown', onKey)
+        return () => window.removeEventListener('keydown', onKey)
+      }, [menu])
+
       const chooseCat = (key) => {
         const frame = frameRef.current
         const doc = frame && frame.contentDocument
@@ -276,38 +199,11 @@ window.__ModuleLoader__.load({
         setMenu(false)
       }
 
-      const onDragStart = (event) => {
-        if (event.button !== 0) return
-        const panel = event.currentTarget.closest('.dsh-pet-cat')
-        if (!panel) return
-        const rect = panel.getBoundingClientRect()
-        dragRef.current = {
-          active: true,
-          offsetX: event.clientX - rect.left,
-          offsetY: event.clientY - rect.top,
-          latest: { x: rect.left, y: rect.top },
-        }
-        event.currentTarget.setPointerCapture(event.pointerId)
-      }
-
-      const onResizeStart = (event) => {
-        if (event.button !== 0) return
-        event.stopPropagation()
-        resizeRef.current = {
-          active: true,
-          x: event.clientX,
-          y: event.clientY,
-          width: sizeRef.current.width,
-          height: sizeRef.current.height,
-        }
-        event.currentTarget.setPointerCapture(event.pointerId)
-      }
-
       const panel = h(
         'div',
         {
           className: 'dsh-pet-cat',
-          style: { left: pos.x, top: pos.y, width: size.width, height: size.height },
+          style: { left: pos.x, top: pos.y, width: SIZE.width, height: SIZE.height },
           'data-dsh-pet-cat': 'panel',
         },
         h('iframe', {
@@ -321,40 +217,11 @@ window.__ModuleLoader__.load({
             applyCatSize(catSize)
           },
         }),
-        h('div', { className: 'dsh-pet-cat-grip', title: '拖动', onPointerDown: onDragStart }, '⠿'),
-        h(
-          'div',
-          { className: 'dsh-pet-cat-tools' },
-          h(
-            'button',
-            {
-              className: 'dsh-pet-cat-btn',
-              title: '收起',
-              onClick: () => setOpen(false),
-              onPointerDown: (event) => event.stopPropagation(),
-            },
-            '—',
-          ),
-          h(
-            'button',
-            {
-              className: 'dsh-pet-cat-btn',
-              title: '选择猫猫 / 大小',
-              onClick: (event) => {
-                event.stopPropagation()
-                readCats()
-                setMenu((value) => !value)
-              },
-              onPointerDown: (event) => event.stopPropagation(),
-            },
-            GEAR,
-          ),
-        ),
-        menu
+        menu && cats.length
           ? h(
               'div',
               { className: 'dsh-pet-cat-menu' },
-              cats.length ? cats.map((cat) =>
+              cats.map((cat) =>
                 h(
                   'button',
                   {
@@ -375,7 +242,7 @@ window.__ModuleLoader__.load({
                   }),
                   h('span', null, cat.label),
                 ),
-              ) : h('div', { className: 'dsh-pet-cat-range' }, '正在加载…'),
+              ),
               h(
                 'div',
                 { className: 'dsh-pet-cat-range' },
@@ -415,7 +282,6 @@ window.__ModuleLoader__.load({
               ),
             )
           : null,
-        h('div', { className: 'dsh-pet-cat-resize', title: '调整大小', onPointerDown: onResizeStart }),
       )
 
       const launcher = h(
