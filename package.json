@@ -1,6 +1,6 @@
 {
   "name": "dsh-pet-cat",
-  "version": "0.12.2",
+  "version": "0.12.3",
   "private": false,
   "description": "A transparent, frameless pet-the-cat window for DeepSeek Harness: drag the cat to move it, hold it to pick another cat (by the original author, zubu).",
   "type": "module",

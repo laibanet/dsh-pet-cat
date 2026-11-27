@@ -22,7 +22,7 @@ window.__ModuleLoader__.load({
     // Crop of PAGE that contains the cat (measured from the rendered page).
     const CROP = { x: 2, y: 90, width: 322, height: 180 }
     const LOCAL = '/api/pet-cat/site'
-    const MENU_WIDTH = 250
+    const MENU_WIDTH = 260
     const MENU_MAX = 300
 
     const CAT_LABELS = {
@@ -46,13 +46,13 @@ window.__ModuleLoader__.load({
       .dsh-pet-cat{position:fixed;z-index:60;pointer-events:auto;background:transparent;border:0;box-shadow:none}
       .dsh-pet-cat-clip{position:absolute;inset:0;overflow:hidden;border-radius:12px;pointer-events:auto}
       .dsh-pet-cat-frame{position:absolute;border:0;display:block;background:transparent}
-      .dsh-pet-cat-menu{position:fixed;z-index:61;width:250px;max-height:300px;overflow-y:auto;overflow-x:hidden;display:grid;grid-template-columns:1fr 1fr;gap:2px;padding:2px;background:transparent;border:0;box-shadow:none;pointer-events:auto;scrollbar-width:thin;scrollbar-color:rgba(69,51,39,.35) transparent}
+      .dsh-pet-cat-menu{position:fixed;z-index:61;width:250px;max-height:300px;overflow-y:auto;overflow-x:hidden;display:grid;grid-template-columns:repeat(3,1fr);gap:2px;padding:2px;background:transparent;border:0;box-shadow:none;pointer-events:auto;scrollbar-width:thin;scrollbar-color:rgba(69,51,39,.35) transparent}
       .dsh-pet-cat-menu::-webkit-scrollbar{width:6px}
       .dsh-pet-cat-menu::-webkit-scrollbar-thumb{background:rgba(69,51,39,.35);border-radius:3px}
-      .dsh-pet-cat-item{display:flex;align-items:center;gap:4px;padding:2px 4px;border-radius:7px;border:1px solid rgba(69,51,39,.12);background:rgba(251,245,236,.86);backdrop-filter:blur(4px);cursor:pointer;font-size:10px;line-height:1.2;color:#413024;text-align:left;white-space:nowrap;overflow:hidden}
+      .dsh-pet-cat-item{display:flex;align-items:center;gap:4px;padding:2px 4px;border-radius:7px;border:1px solid rgba(69,51,39,.12);background:rgba(251,245,236,.86);backdrop-filter:blur(4px);cursor:pointer;font-size:9px;line-height:1.15;color:#413024;text-align:left;white-space:nowrap;overflow:hidden}
       .dsh-pet-cat-item:hover{background:rgba(255,255,255,.96)}
       .dsh-pet-cat-item[data-active=true]{border-color:#925b36;background:rgba(146,91,54,.16)}
-      .dsh-pet-cat-swatch{width:14px;height:14px;border-radius:50%;flex:none;background-color:#e3d9ca;background-repeat:no-repeat;border:1px solid rgba(69,51,39,.15)}
+      .dsh-pet-cat-swatch{width:12px;height:12px;border-radius:50%;flex:none;background-color:#e3d9ca;background-repeat:no-repeat;border:1px solid rgba(69,51,39,.15)}
       .dsh-pet-cat-foot{grid-column:1 / -1;display:flex;gap:4px;padding-top:2px}
       .dsh-pet-cat-foot button{flex:1;border:0;border-radius:7px;padding:3px;background:rgba(251,245,236,.86);color:#413024;font-size:10px;cursor:pointer;backdrop-filter:blur(4px)}
       .dsh-pet-cat-foot button:hover{background:rgba(255,255,255,.98)}
@@ -239,7 +239,7 @@ window.__ModuleLoader__.load({
               'div',
               {
                 className: 'dsh-pet-cat-menu',
-                style: { left: menuLeft, top: menuTop, width: MENU_WIDTH, height: menuHeight, maxHeight: menuHeight },
+                style: { left: menuLeft, top: menuTop, width: MENU_WIDTH, maxHeight: menuHeight },
                 onWheel: (event) => {
                   event.stopPropagation()
                   const element = event.currentTarget
