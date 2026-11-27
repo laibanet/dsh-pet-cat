@@ -18,6 +18,7 @@ window.__ModuleLoader__.load({
     const STORAGE_POS = 'dsh-pet-cat:pos'
     const STORAGE_OPEN = 'dsh-pet-cat:open'
     const STORAGE_SCALE = 'dsh-pet-cat:scale'
+    const STORAGE_WIDTH = 'dsh-pet-cat:width'
     const PAGE = { width: 360, height: 420 }
     // Crop of PAGE that contains the cat (measured from the rendered page).
     const CROP = { x: 2, y: 90, width: 322, height: 180 }
@@ -107,6 +108,7 @@ window.__ModuleLoader__.load({
     function PetCat() {
       const [open, setOpen] = useState(() => readBool(STORAGE_OPEN, true))
       const [scale, setScale] = useState(() => clampScale(readNumber(STORAGE_SCALE, DEFAULT_SCALE)))
+      const [width, setWidth] = useState(() => Math.min(10, Math.max(0, Math.round(readNumber(STORAGE_WIDTH, 5)))))
       const panelW = Math.round(CROP.width * scale)
       const panelH = Math.round(CROP.height * scale)
       const [pos, setPos] = useState(() => {
@@ -152,6 +154,15 @@ window.__ModuleLoader__.load({
           /* ignore */
         }
       }, [scale, panelW, panelH])
+
+      const applyWidth = useCallback((value) => {
+        const doc = frameRef.current && frameRef.current.contentDocument
+        const input = doc && doc.getElementById('cat-width')
+        if (!input) return
+        input.value = String(value)
+        input.dispatchEvent(new Event('input', { bubbles: true }))
+        input.dispatchEvent(new Event('change', { bubbles: true }))
+      }, [])
 
       const readCats = useCallback(() => {
         const frame = frameRef.current
@@ -212,6 +223,7 @@ window.__ModuleLoader__.load({
         const button = doc && doc.querySelector(`.choices button[data-cat="${key}"]`)
         if (button) {
           button.click()
+          applyWidth(width)
           setCurrent(key)
         }
         setMenu(false)
@@ -239,6 +251,7 @@ window.__ModuleLoader__.load({
           },
           onLoad: () => {
             readCats()
+            applyWidth(width)
           },
         }),
       )
@@ -300,6 +313,29 @@ window.__ModuleLoader__.load({
                   onChange: (event) => setScale(clampScale(Number(event.target.value))),
                 }),
                 h('b', null, `${Math.round(scale * 100)}%`),
+              ),
+              h(
+                'div',
+                { className: 'dsh-pet-cat-range' },
+                h('span', null, '粗细'),
+                h('input', {
+                  type: 'range',
+                  min: 0,
+                  max: 10,
+                  step: 1,
+                  value: width,
+                  onChange: (event) => {
+                    const value = Math.round(Number(event.target.value))
+                    setWidth(value)
+                    applyWidth(value)
+                    try {
+                      localStorage.setItem(STORAGE_WIDTH, String(value))
+                    } catch {
+                      /* ignore */
+                    }
+                  },
+                }),
+                h('b', null, String(width)),
               ),
               h(
                 'div',
