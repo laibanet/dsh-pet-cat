@@ -1,8 +1,8 @@
 {
   "name": "dsh-pet-cat",
-  "version": "0.9.0",
+  "version": "0.9.2",
   "private": false,
-  "description": "A transparent, resizable pet-the-cat window for DeepSeek Harness with cat picker, size slider and a pop-out window (by the original author, zubu).",
+  "description": "A transparent, resizable pet-the-cat window for DeepSeek Harness with cat picker and size slider (by the original author, zubu).",
   "type": "module",
   "license": "MIT",
   "keywords": [

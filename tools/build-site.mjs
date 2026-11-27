@@ -39,11 +39,6 @@ main{display:block!important;height:100%!important;width:100%!important;padding:
 </style>`
 
 const guard = `<script>
-if (new URLSearchParams(location.search).has('popup')) {
-  const sheet = document.createElement('style')
-  sheet.textContent = 'html,body{background:#fbf5ec!important}'
-  document.head.append(sheet)
-}
 window.addEventListener('error', (event) => {
   const box = document.createElement('pre')
   box.id = 'dsh-error'

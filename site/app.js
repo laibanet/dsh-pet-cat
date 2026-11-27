@@ -2666,7 +2666,7 @@ const baseW=roomW*.831,baseH=roomH*.831;
 const scale=catScale*(key==='sphynx'?.95:1);
 const w=baseW*scale,h=baseH*scale;
 const x=roomX+roomW*.006+(baseW-w)*.46;
-const y=roomY+(roomH-baseH)*.49+(baseH-h)*.51;
+const y=roomY+(roomH-baseH)*.49+(baseH-h)*.51-roomH*.18;
 const kittenAmount=clamp((.86-scale)/(.86-.65));
 const upperNeckExtra=kittenAmount*clamp(baseW*.062,24,44)/w;
 view={width:r.width,height:r.height,dpr,x,y,w,h,roomX,roomY,roomW,roomH,baseW,kitten:scale<=.79,
@@ -2681,7 +2681,7 @@ reprojectPointer();paint(.001);
 }
 }
 proportions.restore(selected);
-new ResizeObserver(layout).observe(stage);
+new ResizeObserver(layout).observe(stage);window.addEventListener('resize',layout);if(window.visualViewport)window.visualViewport.addEventListener('resize',layout);
 function reset(){
 handChange.reset();
 passedTip=false;tailAnchor=false;returningToBody=false;area='back';keyTailStart=null;edgePointer=null;edgeMoved=false;operator=null;previousInput=null;
