@@ -5,6 +5,11 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>猫猫</title>
 <script>
+if (new URLSearchParams(location.search).has('popup')) {
+  const sheet = document.createElement('style')
+  sheet.textContent = 'html,body{background:#fbf5ec!important}'
+  document.head.append(sheet)
+}
 window.addEventListener('error', (event) => {
   const box = document.createElement('pre')
   box.id = 'dsh-error'

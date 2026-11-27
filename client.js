@@ -22,6 +22,7 @@ window.__ModuleLoader__.load({
     const MAX = { width: 720, height: 600 }
     const DEFAULT = { width: 360, height: 420 }
     const LOCAL = '/api/pet-cat/site'
+    const POPUP = '/api/pet-cat/site?popup=1'
 
     const CAT_LABELS = {
       kuro: '黑猫',
@@ -326,6 +327,23 @@ window.__ModuleLoader__.load({
             'button',
             {
               className: 'dsh-pet-cat-btn',
+              title: '弹出独立窗口',
+              onClick: (event) => {
+                event.stopPropagation()
+                window.open(
+                  POPUP,
+                  'dsh-pet-cat-window',
+                  'popup=yes,width=380,height=460,resizable=yes,scrollbars=no,menubar=no,toolbar=no,location=no,status=no',
+                )
+              },
+              onPointerDown: (event) => event.stopPropagation(),
+            },
+            '⧉',
+          ),
+          h(
+            'button',
+            {
+              className: 'dsh-pet-cat-btn',
               title: '选择猫猫 / 大小',
               onClick: (event) => {
                 event.stopPropagation()
@@ -397,6 +415,20 @@ window.__ModuleLoader__.load({
                     },
                   },
                   '重载',
+                ),
+                h(
+                  'button',
+                  {
+                    onClick: () => {
+                      window.open(
+                        POPUP,
+                        'dsh-pet-cat-window',
+                        'popup=yes,width=380,height=460,resizable=yes,scrollbars=no,menubar=no,toolbar=no,location=no,status=no',
+                      )
+                      setMenu(false)
+                    },
+                  },
+                  '独立窗口',
                 ),
                 h('button', { onClick: () => setOpen(false) }, '收起'),
               ),
