@@ -45,6 +45,18 @@ A cat in the corner with no room, no shadow and no chrome:
 The cat photos and page are by **zubu**
 (<https://pet-the-cat.pages.dev>) and are bundled with the author's permission.
 
+## Standalone (no DSH) / 独立窗口（不依赖 DSH）
+
+Double-click `standalone/start.cmd`: it opens the cat in a **Chrome/Edge app
+window** (separate process, separate profile) and pins it always-on-top. DSH can
+be minimized, moved or closed and the cat stays. It has a paper background
+(browser app windows cannot be transparent).
+
+双击 `standalone/start.cmd`：用 Chrome/Edge 的独立应用窗口打开猫猫，并置顶。
+DSH 最小化、移走或关闭都不影响它。窗口是不透明纸色底。
+
+See [standalone/README.md](standalone/README.md) for details.
+
 ## Development
 
 `site/index.html` is generated from the unpacked sources in `site/`
