@@ -239,7 +239,15 @@ window.__ModuleLoader__.load({
               'div',
               {
                 className: 'dsh-pet-cat-menu',
-                style: { left: menuLeft, top: menuTop, maxHeight: menuHeight },
+                style: { left: menuLeft, top: menuTop, width: MENU_WIDTH, height: menuHeight, maxHeight: menuHeight },
+                onWheel: (event) => {
+                  event.stopPropagation()
+                  const element = event.currentTarget
+                  element.scrollTop += event.deltaY
+                },
+                onWheelCapture: (event) => {
+                  event.stopPropagation()
+                },
               },
               cats.map((cat) =>
                 h(
