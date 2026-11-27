@@ -2960,21 +2960,17 @@ shadowCtx.globalCompositeOperation='source-over';
 ctx.drawImage(layer,0,0,w,h);
 if(visible){
 const drawGrip=context=>{
-posedHand.draw(context,view,g=>tailHand.drawSkin(g),0);
+
 };
 if(blend>0 && blend<1){
 if(blendLayer.width!==scene.width || blendLayer.height!==scene.height){
 blendLayer.width=scene.width;blendLayer.height=scene.height;
 }
 blendCtx.setTransform(1,0,0,1,0,0);blendCtx.clearRect(0,0,blendLayer.width,blendLayer.height);blendCtx.drawImage(scene,0,0);
-blendCtx.setTransform(dpr,0,0,dpr,0,0);drawGrip(blendCtx);
+blendCtx.setTransform(dpr,0,0,dpr,0,0);
 }
-if(blend<1){
-if(hand.transition || hand.sleeveDrop>1)posedHand.draw(ctx,view,g=>hand.drawSkin(g),altitude);
-else hand.draw(ctx);
-}
-if(blend===1)drawGrip(ctx);
-else if(blend>0){
+if(blend<1){}
+if(blend>0){
 ctx.save();ctx.setTransform(1,0,0,1,0,0);ctx.globalAlpha=blend;
 ctx.drawImage(blendLayer,0,0);ctx.restore();
 }

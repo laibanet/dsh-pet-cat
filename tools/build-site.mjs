@@ -77,8 +77,8 @@ if (window.parent !== window) {
   }
   function onMove(event) {
     if (!start) return
-    const dx = event.clientX - start.x
-    const dy = event.clientY - start.y
+    const dx = event.screenX - start.x
+    const dy = event.screenY - start.y
     if (!dragging && Math.hypot(dx, dy) > 6) {
       if (performance.now() - start.t < 300) {
         start = null
@@ -86,14 +86,14 @@ if (window.parent !== window) {
         return
       }
       dragging = true
-      last = { x: event.clientX, y: event.clientY }
+      last = { x: event.screenX, y: event.screenY }
       clearTimeout(menuTimer)
     }
     if (dragging) {
       event.stopImmediatePropagation()
       event.preventDefault()
-      post({ type: 'pet-cat-drag', dx: event.clientX - last.x, dy: event.clientY - last.y })
-      last = { x: event.clientX, y: event.clientY }
+      post({ type: 'pet-cat-drag', dx: event.screenX - last.x, dy: event.screenY - last.y })
+      last = { x: event.screenX, y: event.screenY }
     }
   }
   function onUp() {
@@ -105,7 +105,7 @@ if (window.parent !== window) {
     'pointerdown',
     (event) => {
       if (event.button !== 0) return
-      start = { x: event.clientX, y: event.clientY, t: performance.now() }
+      start = { x: event.screenX, y: event.screenY, t: performance.now() }
       dragging = false
       holdTimer = setTimeout(() => {
         if (!start || dragging) return
