@@ -22,6 +22,8 @@ window.__ModuleLoader__.load({
     // Crop of PAGE that contains the cat (measured from the rendered page).
     const CROP = { x: 2, y: 90, width: 322, height: 180 }
     const LOCAL = '/api/pet-cat/site'
+    const MENU_WIDTH = 250
+    const MENU_MAX = 300
 
     const CAT_LABELS = {
       kuro: '黑猫',
@@ -44,14 +46,16 @@ window.__ModuleLoader__.load({
       .dsh-pet-cat{position:fixed;z-index:60;pointer-events:auto;background:transparent;border:0;box-shadow:none}
       .dsh-pet-cat-clip{position:absolute;inset:0;overflow:hidden;border-radius:12px;pointer-events:auto}
       .dsh-pet-cat-frame{position:absolute;border:0;display:block;background:transparent}
-      .dsh-pet-cat-menu{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:240px;max-height:300px;overflow:auto;border-radius:14px;background:rgba(251,245,236,.98);backdrop-filter:blur(10px);box-shadow:0 16px 40px rgba(0,0,0,.3);border:1px solid rgba(69,51,39,.14);padding:8px;display:grid;grid-template-columns:1fr 1fr;gap:4px;pointer-events:auto}
-      .dsh-pet-cat-item{display:flex;align-items:center;gap:6px;padding:5px 6px;border-radius:8px;border:1px solid transparent;background:transparent;cursor:pointer;font-size:11px;color:#413024;text-align:left}
-      .dsh-pet-cat-item:hover{background:rgba(69,51,39,.08)}
-      .dsh-pet-cat-item[data-active=true]{border-color:#925b36;background:rgba(146,91,54,.1)}
-      .dsh-pet-cat-swatch{width:18px;height:18px;border-radius:50%;flex:none;background-color:#e3d9ca;background-repeat:no-repeat;border:1px solid rgba(69,51,39,.15)}
-      .dsh-pet-cat-foot{grid-column:1 / -1;display:flex;gap:6px;padding-top:4px;border-top:1px solid rgba(69,51,39,.1);margin-top:4px}
-      .dsh-pet-cat-foot button{flex:1;border:0;border-radius:8px;padding:5px;background:rgba(69,51,39,.08);color:#413024;font-size:11px;cursor:pointer}
-      .dsh-pet-cat-foot button:hover{background:rgba(69,51,39,.16)}
+      .dsh-pet-cat-menu{position:fixed;z-index:61;width:250px;max-height:300px;overflow-y:auto;overflow-x:hidden;display:grid;grid-template-columns:1fr 1fr;gap:2px;padding:2px;background:transparent;border:0;box-shadow:none;pointer-events:auto;scrollbar-width:thin;scrollbar-color:rgba(69,51,39,.35) transparent}
+      .dsh-pet-cat-menu::-webkit-scrollbar{width:6px}
+      .dsh-pet-cat-menu::-webkit-scrollbar-thumb{background:rgba(69,51,39,.35);border-radius:3px}
+      .dsh-pet-cat-item{display:flex;align-items:center;gap:4px;padding:2px 4px;border-radius:7px;border:1px solid rgba(69,51,39,.12);background:rgba(251,245,236,.86);backdrop-filter:blur(4px);cursor:pointer;font-size:10px;line-height:1.2;color:#413024;text-align:left;white-space:nowrap;overflow:hidden}
+      .dsh-pet-cat-item:hover{background:rgba(255,255,255,.96)}
+      .dsh-pet-cat-item[data-active=true]{border-color:#925b36;background:rgba(146,91,54,.16)}
+      .dsh-pet-cat-swatch{width:14px;height:14px;border-radius:50%;flex:none;background-color:#e3d9ca;background-repeat:no-repeat;border:1px solid rgba(69,51,39,.15)}
+      .dsh-pet-cat-foot{grid-column:1 / -1;display:flex;gap:4px;padding-top:2px}
+      .dsh-pet-cat-foot button{flex:1;border:0;border-radius:7px;padding:3px;background:rgba(251,245,236,.86);color:#413024;font-size:10px;cursor:pointer;backdrop-filter:blur(4px)}
+      .dsh-pet-cat-foot button:hover{background:rgba(255,255,255,.98)}
       .dsh-pet-cat-launch{position:fixed;z-index:60;right:14px;bottom:14px;width:42px;height:42px;border-radius:50%;border:1px solid rgba(69,51,39,.25);background:#fbf5ec;font-size:21px;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,.25);pointer-events:auto}
       .dsh-pet-cat-launch:hover{transform:scale(1.06)}
     `
@@ -220,10 +224,23 @@ window.__ModuleLoader__.load({
             },
           }),
         ),
-        menu && cats.length
+      )
+
+      const menuHeight = Math.min(MENU_MAX, Math.max(120, window.innerHeight - 16))
+      const menuLeft = Math.min(Math.max(8, pos.x), Math.max(8, window.innerWidth - MENU_WIDTH - 8))
+      let menuTop = pos.y + CROP.height + 8
+      if (menuTop + menuHeight > window.innerHeight - 8) {
+        menuTop = Math.max(8, pos.y - menuHeight - 8)
+      }
+
+      const menuPanel =
+        open && menu && cats.length
           ? h(
               'div',
-              { className: 'dsh-pet-cat-menu' },
+              {
+                className: 'dsh-pet-cat-menu',
+                style: { left: menuLeft, top: menuTop, maxHeight: menuHeight },
+              },
               cats.map((cat) =>
                 h(
                   'button',
@@ -259,11 +276,10 @@ window.__ModuleLoader__.load({
                   },
                   '重载',
                 ),
-                h('button', { onClick: () => setOpen(false) }, '收起'),
+                h('button', { onClick: () => { setOpen(false); setMenu(false) } }, '收起'),
               ),
             )
-          : null,
-      )
+          : null
 
       const launcher = h(
         'button',
@@ -276,7 +292,13 @@ window.__ModuleLoader__.load({
         '🐱',
       )
 
-      return h(React.Fragment, null, h('style', null, STYLE), open ? panel : launcher)
+      return h(
+        React.Fragment,
+        null,
+        h('style', null, STYLE),
+        open ? panel : launcher,
+        menuPanel,
+      )
     }
 
     return {
